@@ -71,3 +71,4 @@ Testing/
 .clang-tidy
 .clang-format
 logs/*
+generated/
