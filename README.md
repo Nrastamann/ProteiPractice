@@ -1,4 +1,4 @@
-Практика протей
+# Практика протей
 Статус задач:
 - [x] Задача №1
 - [x] Задача №2
@@ -45,8 +45,13 @@
 - Release - Релиз сборка с флагом оптимизации -O3
 
 ## Санитайзеры
+Работа санитайзеров продемонстрирована на скриншотах
+![Asan](/screens/sanitizer1.png "Address sanitizer debug")
 
+![Msan](screens/sanitizer2.png "Another asan debug")
 ## Статический анализатор
+Статический анализатор подключен к процессу компиляции, но также им можно воспользоваться напрямую:
+![StatAnalyzer](screens/cppcheck.png "CPPCheck")
 
 ## Тесты
 Проект при каждом пресете собирает тесты, которые покрывают значительную часть
@@ -64,3 +69,7 @@ ctest --preset \<Current-preset\> -j
 
 gcovr --gcov-executable "llvm-cov gcov" --filter src/ --filter include/ --html-details coverage/gcovr.html
 ```
+Пример результатов работы gcovr:
+
+![gcovr](screens/gcovr.png "gcover coverage")
+
