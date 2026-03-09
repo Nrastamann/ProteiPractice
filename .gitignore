@@ -72,3 +72,4 @@ Testing/
 .clang-format
 logs/*
 generated/
+coverage/**
