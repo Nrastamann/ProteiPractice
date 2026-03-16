@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
+#include <sys/socket.h>
 #include <unistd.h>
+#include <algorithm>
 #include <array>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
@@ -11,8 +13,10 @@
 #include <vector>
 #include "custom_types.hpp"
 #include "data_pool.hpp"
+#include "ip_addr.hpp"
 #include "menu.hpp"
 #include "parsing.hpp"
+#include "resources_test.hpp"
 #include "settings.hpp"
 
 class InputFixture : public testing::Test {
@@ -125,9 +129,51 @@ class ParsingFixture : public testing::Test {
 
 class ResourceFixture : public testing::Test {
  protected:
-  void SetUp() override {}
+  static constexpr size_t kSocketsAmount{4};
+  static constexpr std::array<short, kSocketsAmount> kPorts = {5000, 5001, 5002,
+                                                               5003};
 
-  void TearDown() override {}
+  std::array<int, kSocketsAmount> _socket_server;
+  bool _test_incorrect = false;
+
+  void SetUp() override
+  {
+    std::ranges::generate_n(_socket_server.begin(), 4,
+                            []() { return socket(AF_INET, SOCK_STREAM, 0); });
+
+    _test_incorrect =
+        std::ranges::find(_socket_server, -1) != _socket_server.end();
+    if (_test_incorrect) {
+      return;
+    }
+
+    sockaddr_in server_addr{};
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+
+    const auto* it_ports = kPorts.begin();
+    auto* it_sockets = _socket_server.begin();
+
+    for (; it_ports != kPorts.end() && it_sockets != _socket_server.end();
+         std::advance(it_ports, 1), std::advance(it_sockets, 1)) {
+
+      server_addr.sin_port = htons(*it_ports);
+      int res = bind(*it_sockets, reinterpret_cast<sockaddr*>(&server_addr),
+                     sizeof(server_addr));
+
+      _test_incorrect = res == -1;
+      if (_test_incorrect) {
+        return;
+      }
+
+      listen(*it_sockets, 1);
+    }
+  }
+
+  void TearDown() override
+  {
+    std::ranges::transform(_socket_server, _socket_server.begin(), &close);
+  }
 };
 
 TEST_F(ArgvFixture, AddressPortParsingTest)
@@ -445,6 +491,28 @@ TEST_F(InputFixture, PrintSettings)
 
   EXPECT_EQ(result, _cout.str());
 }
+
+TEST_F(ResourceFixture, NetResourceTest)
+{
+  ASSERT_FALSE(_test_incorrect);
+
+  static constexpr std::array<uint8_t, 4> kIpAddr{};
+
+  std::array<IpAddr, 4> ip_addresses{};
+
+  const auto* it_port = kPorts.begin();
+
+  for (auto& addr : ip_addresses) {
+    addr._addr = kIpAddr;
+    addr._port = *it_port;
+    std::advance(it_port, 1);
+  }
+
+  ConnectionTest connections(ip_addresses);
+
+  EXPECT_TRUE(connections());
+}
+
 int main(int argc, char** argv)
 {
   Logger::loggerInit();

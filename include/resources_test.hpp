@@ -4,7 +4,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <algorithm>
-#include <cassert>
 #include <filesystem>
 #include <format>
 #include <string_view>
@@ -74,14 +73,18 @@ class ConnectionTest final : ITest {
     auto test_resource = [](const IpAddr& addr) {
       int client_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-      const sockaddr_in server_addr{.sin_family = AF_INET,
-                                    .sin_port = htons(addr._port),
-                                    .sin_addr{addr.htonlP()},
-                                    .sin_zero{0}};
+      if (client_socket == -1) {
+        return false;
+      }
 
-      int res = connect(client_socket,
-                        reinterpret_cast<const sockaddr*>(&server_addr),
-                        sizeof(server_addr));
+      sockaddr_in server_addr{.sin_family = AF_INET,
+                              .sin_port = htons(addr._port),
+                              .sin_addr{addr.htonlP()},
+                              .sin_zero{0}};
+
+      int res =
+          connect(client_socket, reinterpret_cast<sockaddr*>(&server_addr),
+                  sizeof(server_addr));
       if (res != 0) {
         return false;
       }
