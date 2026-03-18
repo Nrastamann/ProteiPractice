@@ -70,6 +70,7 @@ Testing/
 
 .clang-tidy
 .clang-format
-logs/*
+logs/**
+LogsServer/**
 generated/
 coverage/**
