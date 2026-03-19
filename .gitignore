@@ -74,3 +74,4 @@ logs/**
 LogsServer/**
 generated/
 coverage/**
+_deps/**
