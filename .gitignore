@@ -70,6 +70,10 @@ Testing/
 
 .clang-tidy
 .clang-format
-logs/*
+logs/**
+LogsServer/**
 generated/
 coverage/**
+_deps/**
+tests_multithread/**
+test_result.txt
