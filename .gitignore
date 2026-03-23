@@ -75,5 +75,5 @@ LogsServer/**
 generated/
 coverage/**
 _deps/**
-tests_multithread/**
+tests_multithread/*
 test_result.txt
